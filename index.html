@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <link rel="icon" href="homepage.jpg">
+    <meta charset="UTF-8">
+    <title>810browser Web Edition</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #f4f4f5; }
+        .box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 24px; margin-bottom: 20px; border-left: 5px solid #1a73e8; }
+        .download-area { background: #f9fafb; border: 2px dashed #ccc; padding: 20px; text-align: center; margin: 15px 0; }
+        .btn { background: #1a73e8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; cursor: pointer; border: none; font-size: 16px; }
+        .btn-sub { background: #5f6368; margin-top: 10px; }
+        .note { font-size: 12px; color: #666; margin-top: 10px; }
+        
+        /* 認証・ロック画面用 */
+        #site-lock, #consent-screen, #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+        }
+        #site-lock { background: #1a1a1a; z-index: 9999; }
+        #consent-screen { background: #f4f4f5; z-index: 9998; display: none; }
+        #loading-screen { background: #f4f4f5; z-index: 9997; display: none; }
+        #main-content { display: none; }
+
+        .lock-container, .consent-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px; }
+        .consent-container { max-width: 600px; width: 90%; }
+        
+        /* Web版ブラウザUI */
+        #web-browser-ui { display: none; margin-top: 20px; }
+        .browser-toolbar { background: #333; padding: 10px; border-radius: 8px 8px 0 0; display: flex; gap: 10px; align-items: center; }
+        .browser-toolbar input { flex-grow: 1; padding: 8px; border-radius: 4px; border: none; }
+        .browser-toolbar button { background: #555; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+        iframe { width: 100%; height: 600px; border: 2px solid #333; border-radius: 0 0 8px 8px; background: white; }
+
+        /* ぐるぐる */
+        .spinner { width: 50px; height: 50px; border: 5px solid rgba(26, 115, 232, 0.2); border-top: 5px solid #1a73e8; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="site-lock">
+    <div class="lock-container" style="border: 2px solid #00FF00;">
+        <h2 style="margin-top:0;">LOCKING</h2>
+        <input type="password" id="site-pass" placeholder="Password..." onkeydown="if(event.key==='Enter') verifySite()">
+        <button class="btn" style="background:#333; color:#00FF00; margin-top:10px;" onclick="verifySite()">UNLOCK</button>
+        <p id="msg" style="color:red; font-size:12px;"></p>
+    </div>
+</div>
+
+<div id="consent-screen">
+    <div class="consent-container">
+        <h2>ご利用上の注意</h2>
+        <div style="text-align:left; background:#eee; padding:15px; height:200px; overflow-y:auto; margin-bottom:20px; font-size:14px;">
+            ・Web版は学校の制限を回避してブラウザ内で動作します。<br>
+            ・一部のサイト（Google, YouTube等）はセキュリティ制限により表示できない場合があります。<br>
+            ・本ツールの使用による損害について開発者は一切責任を負いません。
+        </div>
+        <button class="btn" onclick="startLoading()" style="width:100%;">同意して進む</button>
+    </div>
+</div>
+
+<div id="loading-screen">
+    <div class="spinner"></div>
+    <div style="color:#1a73e8; font-weight:bold;">認証中...</div>
+</div>
+
+<div id="main-content">
+    <div class="box">
+        <h1>810browser Online</h1>
+        <p>学校の制限でMac版が開けない場合は、こちらを使ってください。</p>
+        <button class="btn" onclick="openWebBrowser()">Web版を起動する</button>
+        
+        <div id="web-browser-ui">
+            <div class="browser-toolbar">
+                <button onclick="reloadIframe()">↻</button>
+                <input type="text" id="url-input" placeholder="検索ワードまたはURLを入力..." onkeydown="if(event.key==='Enter') loadURL()">
+                <button onclick="loadURL()">Go</button>
+            </div>
+            <iframe id="web-view" src="https://www.google.com/search?igu=1"></iframe>
+        </div>
+    </div>
+
+    <div class="box" style="border-left: 5px solid #5f6368;">
+        <h2>Mac App ダウンロード (予備)</h2>
+        <div class="download-area">
+            <a href="https://github.com/yougenjiangteng-afk/810browser-2026/raw/main/810browser-1.0.4-arm64-mac.zip" class="btn btn-sub">v1.1.4 (.zip) を入手</a>
+            <p class="note">※学校PCでは開けない可能性が高いです</p>
+        </div>
+    </div>
+</div>
+
+<script>
+let attempts = 0;
+function verifySite() {
+    const pass = document.getElementById("site-pass").value;
+    if (pass === "0521") {
+        document.getElementById("site-lock").style.display = "none";
+        document.getElementById("consent-screen").style.display = "flex";
+    } else {
+        attempts++;
+        document.getElementById("msg").innerText = `間違い (${attempts}/3)`;
+        if (attempts >= 3) window.location.replace("about:blank");
+    }
+}
+
+function startLoading() {
+    document.getElementById("consent-screen").style.display = "none"; 
+    document.getElementById("loading-screen").style.display = "flex"; 
+    setTimeout(() => {
+        document.getElementById("loading-screen").style.display = "none";
+        document.getElementById("main-content").style.display = "block";
+    }, 1200);
+}
+
+function openWebBrowser() {
+    document.getElementById("web-browser-ui").style.display = "block";
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+function loadURL() {
+    let url = document.getElementById('url-input').value;
+    const frame = document.getElementById('web-view');
+    if (!url.startsWith('http')) {
+        // 検索ワードとして処理
+        url = 'https://www.google.com/search?q=' + encodeURIComponent(url) + '&igu=1';
+    }
+    frame.src = url;
+}
+
+function reloadIframe() {
+    const frame = document.getElementById('web-view');
+    frame.src = frame.src;
+}
+</script>
+
+</body>
+</html>
