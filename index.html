@@ -139,25 +139,30 @@
 
     // 検索・移動機能
     function navigate() {
-        let val = document.getElementById("url-input").value;
-        if (!val) return;
+    let val = document.getElementById("url-input").value;
+    if (!val) return;
 
-        let targetUrl = val;
-        if (!val.startsWith("http")) {
-            targetUrl = `https://duckduckgo.com/?q=${encodeURIComponent(val)}`;
-        }
+    let targetUrl = val;
 
-        const activeIframe = document.getElementById(activeTabId);
-        activeIframe.src = targetUrl;
-        
-        // タブ名を更新（簡易）
-        document.querySelector(`#btn-${activeTabId} span`).innerText = val.substring(0, 10);
+    // 1. YouTubeのURLをチェックして「埋め込み用」に変換する
+    if (val.includes("youtube.com/watch?v=")) {
+        const videoId = val.split("v=")[1].split("&")[0];
+        targetUrl = `https://www.youtube.com/embed/${videoId}`;
+    } else if (val.includes("youtu.be/")) {
+        const videoId = val.split("youtu.be/")[1].split("?")[0];
+        targetUrl = `https://www.youtube.com/embed/${videoId}`;
+    } 
+    // 2. 普通の検索ワードならDuckDuckGoへ
+    else if (!val.startsWith("http")) {
+        targetUrl = `https://duckduckgo.com/?q=${encodeURIComponent(val)}&kp=-2&kl=jp-jp`;
     }
 
-    function reloadTab() {
-        const activeIframe = document.getElementById(activeTabId);
-        activeIframe.src = activeIframe.src;
-    }
+    const activeIframe = document.getElementById(activeTabId);
+    activeIframe.src = targetUrl;
+    
+    // タブ名を更新
+    document.querySelector(`#btn-${activeTabId} span`).innerText = val.substring(0, 10);
+}
 </script>
 
 </body>
