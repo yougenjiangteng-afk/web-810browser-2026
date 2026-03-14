@@ -144,7 +144,7 @@
 
         let targetUrl = val;
         if (!val.startsWith("http")) {
-            targetUrl = `https://www.google.com/search?q=${encodeURIComponent(val)}&igu=1`;
+            targetUrl = `https://duckduckgo.com/?q=${encodeURIComponent(val)}`;
         }
 
         const activeIframe = document.getElementById(activeTabId);
